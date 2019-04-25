@@ -75,6 +75,11 @@ type Cert struct {
 	NotBefore  string   `json:"notBefore"`
 	NotAfter   string   `json:"notAfter"`
 	Error      string   `json:"error"`
+	SerialNumber string `json:"SerialNumber"`
+	SignatureAlgorithm string `json:"SignatureAlgorithm"`
+	PublicKeyAlgorithm string `json:"PublicKeyAlgorithm"`
+	PublicKey string `json:"PublicKey"`
+	PublicKeyStr string `json:"PublicKeyStr"`
 	certChain  []*x509.Certificate
 }
 
@@ -114,12 +119,25 @@ func NewCert(hostport string) *Cert {
 		loc = time.UTC
 	}
 
+  pk := cert.PublicKey
+  var pk_info string
+  if str, ok := pk.(string); ok {
+    pk_info = str
+  } else {
+    pk_info = "not a string"
+  }
+
 	return &Cert{
 		DomainName: host,
 		IP:         ip,
 		Issuer:     cert.Issuer.CommonName,
 		CommonName: cert.Subject.CommonName,
 		SANs:       cert.DNSNames,
+		SerialNumber: cert.SerialNumber.String(),
+		SignatureAlgorithm: cert.SignatureAlgorithm.String(),
+		PublicKeyAlgorithm: cert.PublicKeyAlgorithm.String(),
+		PublicKey:  pk_info,
+		PublicKeyStr: fmt.Sprint(pk),
 		NotBefore:  cert.NotBefore.In(loc).String(),
 		NotAfter:   cert.NotAfter.In(loc).String(),
 		Error:      "",
@@ -180,6 +198,11 @@ NotBefore:  {{.NotBefore}}
 NotAfter:   {{.NotAfter}}
 CommonName: {{.CommonName}}
 SANs:       {{.SANs}}
+SerialNumber: {{.SerialNumber}}
+SignatureAlgorithm: {{.SignatureAlgorithm}}
+PublicKeyAlgorithm: {{.PublicKeyAlgorithm}}
+PublicKey: {{.PublicKey}}
+PublicKeyStr: {{.PublicKeyStr}}
 Error:      {{.Error}}
 
 {{end}}
